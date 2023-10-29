@@ -1,18 +1,59 @@
 const express = require("express");
-const serverless = require("serverless-http");
+const venom = require("venom-bot");
 
 const app = express();
+app.use(express.json());
+
 const router = express.Router();
 
-router.get("/", (req, res) => {
+let venomClient;
+
+venom
+  .create("gustavo-airton")
+  .then(
+    (client) =>
+      function () {
+        venomClient = client;
+      }
+  )
+  .catch((erro) => {
+    console.log(erro);
+  });
+
+function sendLead(name, email, phone, campaign) {
+  venomClient.sendText(
+    "555198189590@c.us",
+    "*NOVO LEAD - [" +
+      campaign +
+      "]*\n\n*Nome:* " +
+      name +
+      "\n*Telefone:* " +
+      phone +
+      "\n*E-mail:* " +
+      email +
+      "\n\nhttps://wa.me/" +
+      phone
+  );
+}
+
+router.post("/notifylead", (req, res) => {
+  let campaign = req.body.campaign;
+  let name = req.body["name"];
+  let email = req.body["email"];
+  let phone = req.body["phone"];
+
+  sendLead(name, email, phone, campaign);
+  console.log(req.body);
+
   res.json({
-    hello: "hi!",
+    hello: "success!",
   });
 });
 
-app.use(`/.netlify/functions/api`, router);
+app.use(`/whook`, router);
 
 console.log("teste");
 
-module.exports = app;
-module.exports.handler = serverless(app);
+app.listen(3000, () => {
+  console.log(`Example app listening on port ${3000}`);
+});
